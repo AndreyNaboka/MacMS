@@ -1,7 +1,5 @@
 # MacMS
 
-## English
-
 A native CPU and memory monitor for the macOS menu bar.
 
 ### Features
@@ -27,8 +25,6 @@ After launching the application, click the graphs in the menu bar to open the pr
 The first CPU reading for each process is zero because two consecutive samples are required to calculate its usage.
 
 ---
-
-## Русский
 
 Нативный монитор CPU и оперативной памяти для строки меню macOS.
 
