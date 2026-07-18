@@ -12,6 +12,7 @@ A native CPU and memory monitor for the macOS menu bar.
 - a resizable window listing processes and their CPU and resident memory usage;
 - used memory displayed both as a percentage and an absolute value;
 - sorting by any column by clicking its header;
+- automatic Russian interface when Russian is the primary macOS language, with English used for all other languages;
 - no application icon in the Dock.
 
 ### Running
@@ -38,6 +39,7 @@ The first CPU reading for each process is zero because two consecutive samples a
 - изменяемое по размеру окно со списком процессов, их загрузкой CPU и использованием резидентной памяти;
 - отображение занятой оперативной памяти в процентах и в абсолютном размере;
 - сортировка по любой колонке кликом по её заголовку;
+- автоматический русский интерфейс, когда русский является основным языком macOS, и английский интерфейс для всех остальных языков;
 - отсутствие иконки приложения в Dock.
 
 ### Запуск

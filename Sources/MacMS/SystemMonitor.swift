@@ -147,6 +147,6 @@ final class SystemMonitor {
         if length > 0 {
             return String(cString: buffer)
         }
-        return "Процесс \(pid)"
+        return L10n.processFallback(pid: pid)
     }
 }

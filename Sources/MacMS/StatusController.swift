@@ -28,7 +28,7 @@ final class StatusController: NSObject, NSWindowDelegate {
             button.sendAction(on: [.leftMouseUp, .rightMouseUp])
         }
 
-        processWindow.title = "MacMS — процессы"
+        processWindow.title = L10n.windowTitle
         processWindow.contentViewController = processController
         processWindow.minSize = NSSize(width: 480, height: 320)
         processWindow.isReleasedWhenClosed = false

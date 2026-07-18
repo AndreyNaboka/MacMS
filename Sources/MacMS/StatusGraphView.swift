@@ -17,9 +17,9 @@ final class StatusGraphView: NSView {
         memorySamples.append(memory)
         if cpuSamples.count > maximumSamples { cpuSamples.removeFirst() }
         if memorySamples.count > maximumSamples { memorySamples.removeFirst() }
-        let used = ByteCountFormatter.string(fromByteCount: Int64(memoryUsedBytes), countStyle: .memory)
-        let total = ByteCountFormatter.string(fromByteCount: Int64(memoryTotalBytes), countStyle: .memory)
-        toolTip = String(format: "CPU %.0f%%  •  RAM занято: %@ из %@ (%.0f%%)", cpu * 100, used, total, memory * 100)
+        let used = L10n.bytes(memoryUsedBytes)
+        let total = L10n.bytes(memoryTotalBytes)
+        toolTip = "CPU \(L10n.number(cpu * 100, decimals: 0))%  •  RAM \(L10n.memoryUsed): \(used) \(L10n.memorySeparator) \(total) (\(L10n.number(memory * 100, decimals: 0))%)"
         needsDisplay = true
     }
 

@@ -19,20 +19,20 @@ final class ProcessListViewController: NSViewController, NSTableViewDataSource, 
     override func loadView() {
         view = NSView(frame: NSRect(x: 0, y: 0, width: 620, height: 520))
 
-        let title = NSTextField(labelWithString: "Мониторинг системы")
+        let title = NSTextField(labelWithString: L10n.monitorTitle)
         title.font = .systemFont(ofSize: 16, weight: .semibold)
         title.translatesAutoresizingMaskIntoConstraints = false
         summaryLabel.font = .monospacedDigitSystemFont(ofSize: 12, weight: .regular)
         summaryLabel.textColor = .secondaryLabelColor
         summaryLabel.translatesAutoresizingMaskIntoConstraints = false
 
-        let quitButton = NSButton(title: "Завершить MacMS", target: NSApplication.shared, action: #selector(NSApplication.terminate(_:)))
+        let quitButton = NSButton(title: L10n.quit, target: NSApplication.shared, action: #selector(NSApplication.terminate(_:)))
         quitButton.bezelStyle = .inline
         quitButton.controlSize = .small
         quitButton.translatesAutoresizingMaskIntoConstraints = false
 
         let processColumn = NSTableColumn(identifier: NSUserInterfaceItemIdentifier(ProcessSortColumn.process.rawValue))
-        processColumn.title = "Процесс"
+        processColumn.title = L10n.process
         processColumn.width = 290
         processColumn.minWidth = 160
         processColumn.sortDescriptorPrototype = NSSortDescriptor(key: ProcessSortColumn.process.rawValue, ascending: true)
@@ -104,15 +104,9 @@ final class ProcessListViewController: NSViewController, NSTableViewDataSource, 
     func updateSummary(_ load: SystemLoad) {
         latestLoad = load
         guard isViewLoaded else { return }
-        let used = ByteCountFormatter.string(fromByteCount: Int64(load.memoryUsedBytes), countStyle: .memory)
-        let total = ByteCountFormatter.string(fromByteCount: Int64(load.memoryTotalBytes), countStyle: .memory)
-        summaryLabel.stringValue = String(
-            format: "CPU: %.1f%%    RAM занято: %@ из %@ (%.1f%%)",
-            load.cpu * 100,
-            used,
-            total,
-            load.memory * 100
-        )
+        let used = L10n.bytes(load.memoryUsedBytes)
+        let total = L10n.bytes(load.memoryTotalBytes)
+        summaryLabel.stringValue = "CPU: \(L10n.number(load.cpu * 100, decimals: 1))%    RAM \(L10n.memoryUsed): \(used) \(L10n.memorySeparator) \(total) (\(L10n.number(load.memory * 100, decimals: 1))%)"
     }
 
     private func refreshProcesses() {
@@ -155,10 +149,10 @@ final class ProcessListViewController: NSViewController, NSTableViewDataSource, 
             cell.textField?.stringValue = "\(process.name)  (\(process.pid))"
             cell.textField?.alignment = .left
         case .cpu:
-            cell.textField?.stringValue = String(format: "%.1f%%", process.cpu)
+            cell.textField?.stringValue = "\(L10n.number(process.cpu, decimals: 1))%"
             cell.textField?.alignment = .right
         case .memory:
-            cell.textField?.stringValue = ByteCountFormatter.string(fromByteCount: Int64(process.memoryBytes), countStyle: .memory)
+            cell.textField?.stringValue = L10n.bytes(process.memoryBytes)
             cell.textField?.alignment = .right
         case nil:
             break
