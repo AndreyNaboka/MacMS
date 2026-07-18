@@ -28,6 +28,16 @@ Alternatively, open `Package.swift` in Xcode, select the **MacMS** scheme, and c
 After launching the application, click the graphs in the menu bar to open the process list.
 The first CPU reading for each process is zero because two consecutive samples are required to calculate its usage.
 
+### Building a DMG
+
+Build a release app bundle and DMG by passing its version to the packaging script:
+
+```bash
+./scripts/build-dmg.sh 1.0.0
+```
+
+The resulting image is saved to `dist/MacMS-1.0.0-macOS-<architecture>.dmg`. The script applies an ad-hoc signature, verifies the app and disk image, prints its SHA-256 checksum, and shows the command for publishing it with GitHub CLI. Ad-hoc signing does not replace Apple Developer ID signing or notarization, so macOS may warn users on first launch.
+
 ---
 
 Нативный монитор CPU и оперативной памяти для строки меню macOS.
@@ -54,3 +64,13 @@ swift run
 
 После запуска приложения нажмите на графики в строке меню, чтобы открыть список процессов.
 Первое измерение CPU для каждого процесса равно нулю, поскольку для вычисления загрузки нужны две последовательные выборки.
+
+### Сборка DMG
+
+Чтобы собрать приложение в режиме Release и создать DMG, передайте номер версии скрипту упаковки:
+
+```bash
+./scripts/build-dmg.sh 1.0.0
+```
+
+Готовый образ сохраняется в `dist/MacMS-1.0.0-macOS-<архитектура>.dmg`. Скрипт применяет ad-hoc подпись, проверяет приложение и образ диска, выводит контрольную сумму SHA-256 и показывает команду публикации через GitHub CLI. Ad-hoc подпись не заменяет подпись Apple Developer ID и нотарификацию, поэтому при первом запуске macOS может показать предупреждение.
