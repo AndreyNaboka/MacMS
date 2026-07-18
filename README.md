@@ -36,7 +36,7 @@ Build a release app bundle and DMG by passing its version to the packaging scrip
 ./scripts/build-dmg.sh 1.0.0
 ```
 
-The resulting image is saved to `dist/MacMS-1.0.0-macOS-<architecture>.dmg`. The script applies an ad-hoc signature, verifies the app and disk image, prints its SHA-256 checksum, and shows the command for publishing it with GitHub CLI. Ad-hoc signing does not replace Apple Developer ID signing or notarization, so macOS may warn users on first launch.
+The resulting image is saved to `dist/MacMS-1.0.0-macOS-<architecture>.dmg`. The script generates the required macOS icon sizes from `Assets/AppIcon.png`, applies an ad-hoc signature, verifies the app and disk image, prints its SHA-256 checksum, and shows the command for publishing it with GitHub CLI. Ad-hoc signing does not replace Apple Developer ID signing or notarization, so macOS may warn users on first launch.
 
 ---
 
@@ -73,4 +73,4 @@ swift run
 ./scripts/build-dmg.sh 1.0.0
 ```
 
-Готовый образ сохраняется в `dist/MacMS-1.0.0-macOS-<архитектура>.dmg`. Скрипт применяет ad-hoc подпись, проверяет приложение и образ диска, выводит контрольную сумму SHA-256 и показывает команду публикации через GitHub CLI. Ad-hoc подпись не заменяет подпись Apple Developer ID и нотарификацию, поэтому при первом запуске macOS может показать предупреждение.
+Готовый образ сохраняется в `dist/MacMS-1.0.0-macOS-<архитектура>.dmg`. Скрипт создаёт необходимые размеры иконки macOS из `Assets/AppIcon.png`, применяет ad-hoc подпись, проверяет приложение и образ диска, выводит контрольную сумму SHA-256 и показывает команду публикации через GitHub CLI. Ad-hoc подпись не заменяет подпись Apple Developer ID и нотарификацию, поэтому при первом запуске macOS может показать предупреждение.

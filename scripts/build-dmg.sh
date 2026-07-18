@@ -17,7 +17,7 @@ if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+([.-][0-9A-Za-z.-]+)?$ ]]; then
     exit 1
 fi
 
-for command_name in swift plutil codesign diskutil hdiutil shasum; do
+for command_name in swift plutil codesign diskutil hdiutil shasum sips iconutil; do
     if ! command -v "$command_name" >/dev/null 2>&1; then
         echo "Error: required command '$command_name' was not found"
         exit 1
@@ -29,10 +29,13 @@ DIST_DIR="$PROJECT_DIR/dist"
 APP_PATH="$DIST_DIR/MacMS.app"
 DMG_PATH="$DIST_DIR/MacMS-${VERSION}-macOS-${ARCHITECTURE}.dmg"
 PLIST_PATH="$APP_PATH/Contents/Info.plist"
-STAGING_DIR="$(mktemp -d)"
+ICON_SOURCE="$PROJECT_DIR/Assets/AppIcon.png"
+WORK_DIR="$(mktemp -d)"
+DMG_ROOT="$WORK_DIR/dmg-root"
+ICONSET_DIR="$WORK_DIR/AppIcon.iconset"
 
 cleanup() {
-    rm -rf "$STAGING_DIR"
+    rm -rf "$WORK_DIR"
 }
 trap cleanup EXIT
 
@@ -47,6 +50,11 @@ if [[ ! -x "$BIN_PATH/MacMS" ]]; then
     exit 1
 fi
 
+if [[ ! -f "$ICON_SOURCE" ]]; then
+    echo "Error: app icon was not found at $ICON_SOURCE"
+    exit 1
+fi
+
 mkdir -p "$DIST_DIR"
 rm -rf "$APP_PATH"
 rm -f "$DMG_PATH"
@@ -55,11 +63,26 @@ mkdir -p "$APP_PATH/Contents/MacOS" "$APP_PATH/Contents/Resources"
 cp "$BIN_PATH/MacMS" "$APP_PATH/Contents/MacOS/MacMS"
 chmod +x "$APP_PATH/Contents/MacOS/MacMS"
 
+echo "Generating AppIcon.icns..."
+mkdir -p "$ICONSET_DIR"
+sips -z 16 16 "$ICON_SOURCE" --out "$ICONSET_DIR/icon_16x16.png" >/dev/null
+sips -z 32 32 "$ICON_SOURCE" --out "$ICONSET_DIR/icon_16x16@2x.png" >/dev/null
+sips -z 32 32 "$ICON_SOURCE" --out "$ICONSET_DIR/icon_32x32.png" >/dev/null
+sips -z 64 64 "$ICON_SOURCE" --out "$ICONSET_DIR/icon_32x32@2x.png" >/dev/null
+sips -z 128 128 "$ICON_SOURCE" --out "$ICONSET_DIR/icon_128x128.png" >/dev/null
+sips -z 256 256 "$ICON_SOURCE" --out "$ICONSET_DIR/icon_128x128@2x.png" >/dev/null
+sips -z 256 256 "$ICON_SOURCE" --out "$ICONSET_DIR/icon_256x256.png" >/dev/null
+sips -z 512 512 "$ICON_SOURCE" --out "$ICONSET_DIR/icon_256x256@2x.png" >/dev/null
+sips -z 512 512 "$ICON_SOURCE" --out "$ICONSET_DIR/icon_512x512.png" >/dev/null
+sips -z 1024 1024 "$ICON_SOURCE" --out "$ICONSET_DIR/icon_512x512@2x.png" >/dev/null
+iconutil -c icns "$ICONSET_DIR" -o "$APP_PATH/Contents/Resources/AppIcon.icns"
+
 plutil -create xml1 "$PLIST_PATH"
 plutil -insert CFBundleExecutable -string "MacMS" "$PLIST_PATH"
 plutil -insert CFBundleIdentifier -string "com.andreynaboka.MacMS" "$PLIST_PATH"
 plutil -insert CFBundleName -string "MacMS" "$PLIST_PATH"
 plutil -insert CFBundleDisplayName -string "MacMS" "$PLIST_PATH"
+plutil -insert CFBundleIconFile -string "AppIcon" "$PLIST_PATH"
 plutil -insert CFBundlePackageType -string "APPL" "$PLIST_PATH"
 plutil -insert CFBundleShortVersionString -string "$VERSION" "$PLIST_PATH"
 plutil -insert CFBundleVersion -string "1" "$PLIST_PATH"
@@ -73,14 +96,15 @@ echo "Applying an ad-hoc signature..."
 codesign --force --deep --sign - "$APP_PATH"
 codesign --verify --deep --strict --verbose=2 "$APP_PATH"
 
-cp -R "$APP_PATH" "$STAGING_DIR/MacMS.app"
-ln -s /Applications "$STAGING_DIR/Applications"
+mkdir -p "$DMG_ROOT"
+cp -R "$APP_PATH" "$DMG_ROOT/MacMS.app"
+ln -s /Applications "$DMG_ROOT/Applications"
 
 echo "Creating disk image..."
 diskutil image create from \
     --volumeName "MacMS" \
     --format UDZO \
-    "$STAGING_DIR" \
+    "$DMG_ROOT" \
     "$DMG_PATH"
 
 hdiutil verify "$DMG_PATH"
