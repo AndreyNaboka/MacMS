@@ -10,14 +10,16 @@ final class StatusGraphView: NSView {
     override var intrinsicContentSize: NSSize { NSSize(width: 126, height: 22) }
     override func hitTest(_ point: NSPoint) -> NSView? { nil }
 
-    func append(cpu: Double, memory: Double) {
+    func append(cpu: Double, memory: Double, memoryUsedBytes: UInt64, memoryTotalBytes: UInt64) {
         cpuValue = cpu
         memoryValue = memory
         cpuSamples.append(cpu)
         memorySamples.append(memory)
         if cpuSamples.count > maximumSamples { cpuSamples.removeFirst() }
         if memorySamples.count > maximumSamples { memorySamples.removeFirst() }
-        toolTip = String(format: "CPU %.0f%%  •  RAM %.0f%%", cpu * 100, memory * 100)
+        let used = ByteCountFormatter.string(fromByteCount: Int64(memoryUsedBytes), countStyle: .memory)
+        let total = ByteCountFormatter.string(fromByteCount: Int64(memoryTotalBytes), countStyle: .memory)
+        toolTip = String(format: "CPU %.0f%%  •  RAM занято: %@ из %@ (%.0f%%)", cpu * 100, used, total, memory * 100)
         needsDisplay = true
     }
 

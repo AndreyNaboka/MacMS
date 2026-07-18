@@ -18,7 +18,13 @@ final class SystemMonitor {
     private let processorCount = max(1, ProcessInfo.processInfo.processorCount)
 
     func sampleSystemLoad() -> SystemLoad {
-        SystemLoad(cpu: sampleCPU(), memory: sampleMemory())
+        let memory = sampleMemory()
+        return SystemLoad(
+            cpu: sampleCPU(),
+            memory: memory.fraction,
+            memoryUsedBytes: memory.usedBytes,
+            memoryTotalBytes: memory.totalBytes
+        )
     }
 
     func sampleProcesses() -> [ProcessLoad] {
@@ -101,7 +107,7 @@ final class SystemMonitor {
         return min(1, max(0, Double(ticks.busy - previous.busy) / Double(totalDelta)))
     }
 
-    private func sampleMemory() -> Double {
+    private func sampleMemory() -> (fraction: Double, usedBytes: UInt64, totalBytes: UInt64) {
         var stats = vm_statistics64()
         var count = mach_msg_type_number_t(
             MemoryLayout<vm_statistics64_data_t>.size / MemoryLayout<integer_t>.size
@@ -111,18 +117,19 @@ final class SystemMonitor {
                 host_statistics64(mach_host_self(), HOST_VM_INFO64, $0, &count)
             }
         }
-        guard status == KERN_SUCCESS else { return 0 }
+        let totalBytes = ProcessInfo.processInfo.physicalMemory
+        guard status == KERN_SUCCESS, totalBytes > 0 else { return (0, 0, totalBytes) }
 
         let pageSize = UInt64(vm_kernel_page_size)
+        // Occupied RAM: application/active pages, wired kernel pages and
+        // physical pages used by the memory compressor. Inactive/cache and
+        // free pages are intentionally not counted as occupied memory.
         let usedPages = UInt64(stats.active_count)
-            + UInt64(stats.inactive_count)
             + UInt64(stats.wire_count)
             + UInt64(stats.compressor_page_count)
-            - min(UInt64(stats.purgeable_count), UInt64(stats.inactive_count))
-        let usedBytes = usedPages * pageSize
-        let totalBytes = ProcessInfo.processInfo.physicalMemory
-        guard totalBytes > 0 else { return 0 }
-        return min(1, max(0, Double(usedBytes) / Double(totalBytes)))
+        let usedBytes = min(totalBytes, usedPages * pageSize)
+        let fraction = min(1, max(0, Double(usedBytes) / Double(totalBytes)))
+        return (fraction, usedBytes, totalBytes)
     }
 
     private func allProcessIDs() -> [Int32] {

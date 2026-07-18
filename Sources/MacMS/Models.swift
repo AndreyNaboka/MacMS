@@ -3,6 +3,8 @@ import Foundation
 struct SystemLoad {
     let cpu: Double
     let memory: Double
+    let memoryUsedBytes: UInt64
+    let memoryTotalBytes: UInt64
 }
 
 struct ProcessLoad {

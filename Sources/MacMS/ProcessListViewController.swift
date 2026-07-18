@@ -6,18 +6,18 @@ final class ProcessListViewController: NSViewController, NSTableViewDataSource, 
     private let summaryLabel = NSTextField(labelWithString: "")
     private var rows: [ProcessLoad] = []
     private var updateTimer: Timer?
-    private var latestLoad = SystemLoad(cpu: 0, memory: 0)
+    private var latestLoad = SystemLoad(cpu: 0, memory: 0, memoryUsedBytes: 0, memoryTotalBytes: 0)
 
     init(monitor: SystemMonitor) {
         self.monitor = monitor
         super.init(nibName: nil, bundle: nil)
-        preferredContentSize = NSSize(width: 540, height: 500)
+        preferredContentSize = NSSize(width: 620, height: 520)
     }
 
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
 
     override func loadView() {
-        view = NSView(frame: NSRect(x: 0, y: 0, width: 540, height: 500))
+        view = NSView(frame: NSRect(x: 0, y: 0, width: 620, height: 520))
 
         let title = NSTextField(labelWithString: "Мониторинг системы")
         title.font = .systemFont(ofSize: 16, weight: .semibold)
@@ -104,7 +104,15 @@ final class ProcessListViewController: NSViewController, NSTableViewDataSource, 
     func updateSummary(_ load: SystemLoad) {
         latestLoad = load
         guard isViewLoaded else { return }
-        summaryLabel.stringValue = String(format: "CPU: %.1f%%    RAM: %.1f%%", load.cpu * 100, load.memory * 100)
+        let used = ByteCountFormatter.string(fromByteCount: Int64(load.memoryUsedBytes), countStyle: .memory)
+        let total = ByteCountFormatter.string(fromByteCount: Int64(load.memoryTotalBytes), countStyle: .memory)
+        summaryLabel.stringValue = String(
+            format: "CPU: %.1f%%    RAM занято: %@ из %@ (%.1f%%)",
+            load.cpu * 100,
+            used,
+            total,
+            load.memory * 100
+        )
     }
 
     private func refreshProcesses() {
