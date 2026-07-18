@@ -43,12 +43,27 @@ final class StatusGraphView: NSView {
 
     private func drawPanel(in rect: NSRect, title: String, value: Double, samples: [Double], color: NSColor) {
         let graphRect = NSRect(x: rect.minX, y: rect.minY, width: 29, height: rect.height)
-        let line = NSBezierPath()
         guard !samples.isEmpty else { return }
-        for (index, sample) in samples.enumerated() {
+        let points = samples.enumerated().map { index, sample in
             let x = graphRect.maxX - CGFloat(samples.count - 1 - index) * graphRect.width / CGFloat(maximumSamples - 1)
             let y = graphRect.minY + 1 + CGFloat(sample) * (graphRect.height - 3)
-            index == 0 ? line.move(to: NSPoint(x: x, y: y)) : line.line(to: NSPoint(x: x, y: y))
+            return NSPoint(x: x, y: y)
+        }
+
+        let area = NSBezierPath()
+        area.move(to: NSPoint(x: points[0].x, y: graphRect.minY))
+        for point in points {
+            area.line(to: point)
+        }
+        area.line(to: NSPoint(x: points[points.count - 1].x, y: graphRect.minY))
+        area.close()
+        color.withAlphaComponent(0.24).setFill()
+        area.fill()
+
+        let line = NSBezierPath()
+        line.move(to: points[0])
+        for point in points.dropFirst() {
+            line.line(to: point)
         }
         color.setStroke()
         line.lineWidth = 1.35
