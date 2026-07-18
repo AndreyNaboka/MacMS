@@ -14,6 +14,37 @@ enum L10n {
     static var process: String { text(russian: "Процесс", english: "Process") }
     static var memoryUsed: String { text(russian: "занято", english: "used") }
     static var memorySeparator: String { text(russian: "из", english: "of") }
+    static var launchAtLoginTitle: String {
+        text(russian: "Запускать MacMS при входе?", english: "Open MacMS at login?")
+    }
+    static var launchAtLoginMessage: String {
+        text(
+            russian: "MacMS будет автоматически запускаться после входа в macOS и показывать графики CPU и RAM в строке меню.",
+            english: "MacMS will open automatically after you log in to macOS and show CPU and RAM graphs in the menu bar."
+        )
+    }
+    static var enable: String { text(russian: "Добавить", english: "Add") }
+    static var notNow: String { text(russian: "Не сейчас", english: "Not Now") }
+    static var loginApprovalTitle: String {
+        text(russian: "Требуется разрешение macOS", english: "macOS Approval Required")
+    }
+    static var loginApprovalMessage: String {
+        text(
+            russian: "MacMS зарегистрирован для автозапуска, но его необходимо разрешить в разделе «Объекты входа» системных настроек.",
+            english: "MacMS is registered to open at login, but it must be allowed in Login Items in System Settings."
+        )
+    }
+    static var loginErrorTitle: String {
+        text(russian: "Не удалось добавить в автозагрузку", english: "Couldn’t Enable Open at Login")
+    }
+    static var loginErrorMessage: String {
+        text(
+            russian: "Добавьте MacMS вручную в разделе «Основные» → «Объекты входа и расширения» системных настроек.",
+            english: "Add MacMS manually in System Settings under General → Login Items & Extensions."
+        )
+    }
+    static var openSettings: String { text(russian: "Открыть настройки", english: "Open Settings") }
+    static var ok: String { text(russian: "OK", english: "OK") }
 
     static func processFallback(pid: Int32) -> String {
         "\(process) \(pid)"

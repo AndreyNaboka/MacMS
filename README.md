@@ -13,6 +13,7 @@ A native CPU and memory monitor for the macOS menu bar.
 - used memory displayed both as a percentage and an absolute value;
 - sorting by any column by clicking its header;
 - automatic Russian interface when Russian is the primary macOS language, with English used for all other languages;
+- a one-time first-launch prompt offering to open MacMS automatically at login;
 - no application icon in the Dock.
 
 ### Running
@@ -50,6 +51,7 @@ The resulting image is saved to `dist/MacMS-1.0.0-macOS-<architecture>.dmg`. The
 - отображение занятой оперативной памяти в процентах и в абсолютном размере;
 - сортировка по любой колонке кликом по её заголовку;
 - автоматический русский интерфейс, когда русский является основным языком macOS, и английский интерфейс для всех остальных языков;
+- однократное предложение при первом запуске автоматически открывать MacMS при входе в систему;
 - отсутствие иконки приложения в Dock.
 
 ### Запуск

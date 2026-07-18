@@ -5,6 +5,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         statusController = StatusController()
+        DispatchQueue.main.async {
+            LaunchAtLoginPrompt.showIfNeeded()
+        }
     }
 
     func applicationWillTerminate(_ notification: Notification) {

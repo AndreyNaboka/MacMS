@@ -12,7 +12,8 @@ let package = Package(
             name: "MacMS",
             path: "Sources/MacMS",
             linkerSettings: [
-                .linkedFramework("AppKit")
+                .linkedFramework("AppKit"),
+                .linkedFramework("ServiceManagement")
             ]
         )
     ]
