@@ -14,6 +14,13 @@ enum L10n {
     static var process: String { text(russian: "Процесс", english: "Process") }
     static var memoryUsed: String { text(russian: "занято", english: "used") }
     static var memorySeparator: String { text(russian: "из", english: "of") }
+    static var memoryPressure: String { text(russian: "Нагрузка памяти", english: "Memory pressure") }
+    static var pressureNormal: String { text(russian: "нормальная", english: "normal") }
+    static var pressureWarning: String { text(russian: "повышенная", english: "warning") }
+    static var pressureCritical: String { text(russian: "критическая", english: "critical") }
+    static var cached: String { text(russian: "Кэш", english: "Cached") }
+    static var compressed: String { text(russian: "Сжато", english: "Compressed") }
+    static var swap: String { text(russian: "Swap", english: "Swap") }
     static var launchAtLoginTitle: String {
         text(russian: "Запускать MacMS при входе?", english: "Open MacMS at login?")
     }
@@ -48,6 +55,14 @@ enum L10n {
 
     static func processFallback(pid: Int32) -> String {
         "\(process) \(pid)"
+    }
+
+    static func pressureName(_ pressure: MemoryPressureLevel) -> String {
+        switch pressure {
+        case .normal: pressureNormal
+        case .warning: pressureWarning
+        case .critical: pressureCritical
+        }
     }
 
     static func text(russian: String, english: String) -> String {

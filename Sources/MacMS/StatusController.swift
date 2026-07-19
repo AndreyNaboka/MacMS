@@ -81,7 +81,8 @@ final class StatusController: NSObject, NSWindowDelegate {
             cpu: load.cpu,
             memory: load.memory,
             memoryUsedBytes: load.memoryUsedBytes,
-            memoryTotalBytes: load.memoryTotalBytes
+            memoryTotalBytes: load.memoryTotalBytes,
+            memoryPressure: load.memoryPressure
         )
         processController.updateSummary(load)
     }

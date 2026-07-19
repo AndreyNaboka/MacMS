@@ -5,6 +5,16 @@ struct SystemLoad {
     let memory: Double
     let memoryUsedBytes: UInt64
     let memoryTotalBytes: UInt64
+    let memoryCachedBytes: UInt64
+    let memoryCompressedBytes: UInt64
+    let swapUsedBytes: UInt64
+    let memoryPressure: MemoryPressureLevel
+}
+
+enum MemoryPressureLevel {
+    case normal
+    case warning
+    case critical
 }
 
 struct ProcessLoad {

@@ -6,7 +6,16 @@ final class ProcessListViewController: NSViewController, NSTableViewDataSource, 
     private let summaryLabel = NSTextField(labelWithString: "")
     private var rows: [ProcessLoad] = []
     private var updateTimer: Timer?
-    private var latestLoad = SystemLoad(cpu: 0, memory: 0, memoryUsedBytes: 0, memoryTotalBytes: 0)
+    private var latestLoad = SystemLoad(
+        cpu: 0,
+        memory: 0,
+        memoryUsedBytes: 0,
+        memoryTotalBytes: 0,
+        memoryCachedBytes: 0,
+        memoryCompressedBytes: 0,
+        swapUsedBytes: 0,
+        memoryPressure: .normal
+    )
 
     init(monitor: SystemMonitor) {
         self.monitor = monitor
@@ -24,6 +33,8 @@ final class ProcessListViewController: NSViewController, NSTableViewDataSource, 
         title.translatesAutoresizingMaskIntoConstraints = false
         summaryLabel.font = .monospacedDigitSystemFont(ofSize: 12, weight: .regular)
         summaryLabel.textColor = .secondaryLabelColor
+        summaryLabel.maximumNumberOfLines = 2
+        summaryLabel.lineBreakMode = .byWordWrapping
         summaryLabel.translatesAutoresizingMaskIntoConstraints = false
 
         let quitButton = NSButton(title: L10n.quit, target: NSApplication.shared, action: #selector(NSApplication.terminate(_:)))
@@ -106,7 +117,29 @@ final class ProcessListViewController: NSViewController, NSTableViewDataSource, 
         guard isViewLoaded else { return }
         let used = L10n.bytes(load.memoryUsedBytes)
         let total = L10n.bytes(load.memoryTotalBytes)
-        summaryLabel.stringValue = "CPU: \(L10n.number(load.cpu * 100, decimals: 1))%    RAM \(L10n.memoryUsed): \(used) \(L10n.memorySeparator) \(total) (\(L10n.number(load.memory * 100, decimals: 1))%)"
+        let cached = L10n.bytes(load.memoryCachedBytes)
+        let compressed = L10n.bytes(load.memoryCompressedBytes)
+        let swap = L10n.bytes(load.swapUsedBytes)
+        let firstLine = "CPU: \(L10n.number(load.cpu * 100, decimals: 1))%    RAM \(L10n.memoryUsed): \(used) \(L10n.memorySeparator) \(total) (\(L10n.number(load.memory * 100, decimals: 1))%)"
+        let secondLine = "\(L10n.memoryPressure): ● \(L10n.pressureName(load.memoryPressure))    \(L10n.cached): \(cached)    \(L10n.compressed): \(compressed)    \(L10n.swap): \(swap)"
+        let summary = NSMutableAttributedString(
+            string: "\(firstLine)\n\(secondLine)",
+            attributes: [
+                .font: NSFont.monospacedDigitSystemFont(ofSize: 12, weight: .regular),
+                .foregroundColor: NSColor.secondaryLabelColor
+            ]
+        )
+        let pressureMarkerRange = (summary.string as NSString).range(of: "● \(L10n.pressureName(load.memoryPressure))")
+        summary.addAttribute(.foregroundColor, value: pressureColor(load.memoryPressure), range: pressureMarkerRange)
+        summaryLabel.attributedStringValue = summary
+    }
+
+    private func pressureColor(_ pressure: MemoryPressureLevel) -> NSColor {
+        switch pressure {
+        case .normal: .systemGreen
+        case .warning: .systemYellow
+        case .critical: .systemRed
+        }
     }
 
     private func refreshProcesses() {

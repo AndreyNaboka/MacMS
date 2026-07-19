@@ -2,6 +2,15 @@ import Darwin
 import Foundation
 
 final class SystemMonitor {
+    private struct MemorySnapshot {
+        let fraction: Double
+        let usedBytes: UInt64
+        let totalBytes: UInt64
+        let cachedBytes: UInt64
+        let compressedBytes: UInt64
+        let swapUsedBytes: UInt64
+    }
+
     private struct CPUTicks {
         let user: UInt64
         let system: UInt64
@@ -16,6 +25,34 @@ final class SystemMonitor {
     private var previousProcessTimes: [Int32: UInt64] = [:]
     private var previousProcessSampleTime = DispatchTime.now().uptimeNanoseconds
     private let processorCount = max(1, ProcessInfo.processInfo.processorCount)
+    private var memoryPressureLevel: MemoryPressureLevel = .normal
+    private lazy var memoryPressureSource: DispatchSourceMemoryPressure = {
+        let source = DispatchSource.makeMemoryPressureSource(
+            eventMask: [.normal, .warning, .critical],
+            queue: .main
+        )
+        source.setEventHandler { [weak self] in
+            guard let self else { return }
+            let event = self.memoryPressureSource.data
+            if event.contains(.critical) {
+                self.memoryPressureLevel = .critical
+            } else if event.contains(.warning) {
+                self.memoryPressureLevel = .warning
+            } else if event.contains(.normal) {
+                self.memoryPressureLevel = .normal
+            }
+        }
+        source.resume()
+        return source
+    }()
+
+    init() {
+        _ = memoryPressureSource
+    }
+
+    deinit {
+        memoryPressureSource.cancel()
+    }
 
     func sampleSystemLoad() -> SystemLoad {
         let memory = sampleMemory()
@@ -23,7 +60,11 @@ final class SystemMonitor {
             cpu: sampleCPU(),
             memory: memory.fraction,
             memoryUsedBytes: memory.usedBytes,
-            memoryTotalBytes: memory.totalBytes
+            memoryTotalBytes: memory.totalBytes,
+            memoryCachedBytes: memory.cachedBytes,
+            memoryCompressedBytes: memory.compressedBytes,
+            swapUsedBytes: memory.swapUsedBytes,
+            memoryPressure: memoryPressureLevel
         )
     }
 
@@ -107,7 +148,7 @@ final class SystemMonitor {
         return min(1, max(0, Double(ticks.busy - previous.busy) / Double(totalDelta)))
     }
 
-    private func sampleMemory() -> (fraction: Double, usedBytes: UInt64, totalBytes: UInt64) {
+    private func sampleMemory() -> MemorySnapshot {
         var stats = vm_statistics64()
         var count = mach_msg_type_number_t(
             MemoryLayout<vm_statistics64_data_t>.size / MemoryLayout<integer_t>.size
@@ -118,7 +159,16 @@ final class SystemMonitor {
             }
         }
         let totalBytes = ProcessInfo.processInfo.physicalMemory
-        guard status == KERN_SUCCESS, totalBytes > 0 else { return (0, 0, totalBytes) }
+        guard status == KERN_SUCCESS, totalBytes > 0 else {
+            return MemorySnapshot(
+                fraction: 0,
+                usedBytes: 0,
+                totalBytes: totalBytes,
+                cachedBytes: 0,
+                compressedBytes: 0,
+                swapUsedBytes: sampleSwapUsage()
+            )
+        }
 
         let pageSize = UInt64(vm_kernel_page_size)
         // Occupied RAM: application/active pages, wired kernel pages and
@@ -129,7 +179,21 @@ final class SystemMonitor {
             + UInt64(stats.compressor_page_count)
         let usedBytes = min(totalBytes, usedPages * pageSize)
         let fraction = min(1, max(0, Double(usedBytes) / Double(totalBytes)))
-        return (fraction, usedBytes, totalBytes)
+        return MemorySnapshot(
+            fraction: fraction,
+            usedBytes: usedBytes,
+            totalBytes: totalBytes,
+            cachedBytes: UInt64(stats.external_page_count) * pageSize,
+            compressedBytes: UInt64(stats.compressor_page_count) * pageSize,
+            swapUsedBytes: sampleSwapUsage()
+        )
+    }
+
+    private func sampleSwapUsage() -> UInt64 {
+        var usage = xsw_usage()
+        var size = MemoryLayout<xsw_usage>.size
+        let status = sysctlbyname("vm.swapusage", &usage, &size, nil, 0)
+        return status == 0 ? usage.xsu_used : 0
     }
 
     private func allProcessIDs() -> [Int32] {

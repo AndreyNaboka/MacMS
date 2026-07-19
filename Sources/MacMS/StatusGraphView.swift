@@ -6,20 +6,28 @@ final class StatusGraphView: NSView {
     private var memorySamples: [Double] = []
     private var cpuValue = 0.0
     private var memoryValue = 0.0
+    private var memoryPressure: MemoryPressureLevel = .normal
 
     override var intrinsicContentSize: NSSize { NSSize(width: 126, height: 22) }
     override func hitTest(_ point: NSPoint) -> NSView? { nil }
 
-    func append(cpu: Double, memory: Double, memoryUsedBytes: UInt64, memoryTotalBytes: UInt64) {
+    func append(
+        cpu: Double,
+        memory: Double,
+        memoryUsedBytes: UInt64,
+        memoryTotalBytes: UInt64,
+        memoryPressure: MemoryPressureLevel
+    ) {
         cpuValue = cpu
         memoryValue = memory
+        self.memoryPressure = memoryPressure
         cpuSamples.append(cpu)
         memorySamples.append(memory)
         if cpuSamples.count > maximumSamples { cpuSamples.removeFirst() }
         if memorySamples.count > maximumSamples { memorySamples.removeFirst() }
         let used = L10n.bytes(memoryUsedBytes)
         let total = L10n.bytes(memoryTotalBytes)
-        toolTip = "CPU \(L10n.number(cpu * 100, decimals: 0))%  •  RAM \(L10n.memoryUsed): \(used) \(L10n.memorySeparator) \(total) (\(L10n.number(memory * 100, decimals: 0))%)"
+        toolTip = "CPU \(L10n.number(cpu * 100, decimals: 0))%  •  RAM \(L10n.memoryUsed): \(used) \(L10n.memorySeparator) \(total) (\(L10n.number(memory * 100, decimals: 0))%)  •  \(L10n.memoryPressure): \(L10n.pressureName(memoryPressure))"
         needsDisplay = true
     }
 
@@ -37,8 +45,16 @@ final class StatusGraphView: NSView {
             title: "RAM",
             value: memoryValue,
             samples: memorySamples,
-            color: .systemBlue
+            color: memoryPressureColor
         )
+    }
+
+    private var memoryPressureColor: NSColor {
+        switch memoryPressure {
+        case .normal: .systemBlue
+        case .warning: .systemYellow
+        case .critical: .systemRed
+        }
     }
 
     private func drawPanel(in rect: NSRect, title: String, value: Double, samples: [Double], color: NSColor) {
