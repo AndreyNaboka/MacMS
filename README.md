@@ -7,7 +7,7 @@
 
 - two real-time menu bar graphs showing total CPU and RAM usage;
 - approximately 34 seconds of usage history;
-- a resizable window listing processes and their CPU and resident memory usage;
+- a resizable popover-style panel listing processes and their CPU and resident memory usage;
 - occupied physical memory calculated from active, wired, and compressor memory;
 - system memory pressure indicated by RAM graph color, with separate cached, compressed, and swap statistics;
 - sorting by any column by clicking its header;
@@ -70,7 +70,7 @@ The resulting image is saved to `dist/MacMS-1.0.0-macOS-<architecture>.dmg`. The
 
 - два графика в реальном времени в строке меню, показывающие общую загрузку CPU и RAM;
 - история загрузки примерно за последние 34 секунды;
-- изменяемое по размеру окно со списком процессов, их загрузкой CPU и использованием резидентной памяти;
+- изменяемая по размеру всплывающая панель со списком процессов, их загрузкой CPU и использованием резидентной памяти;
 - расчёт занятой физической памяти на основе активной, wired- и compressor-памяти;
 - отображение системной нагрузки памяти цветом графика RAM и отдельных значений кэша, сжатой памяти и swap;
 - сортировка по любой колонке кликом по её заголовку;

@@ -26,19 +26,27 @@ final class ProcessListViewController: NSViewController, NSTableViewDataSource, 
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
 
     override func loadView() {
-        view = NSView(frame: NSRect(x: 0, y: 0, width: 620, height: 520))
+        let background = NSVisualEffectView(frame: NSRect(x: 0, y: 0, width: 620, height: 520))
+        background.material = .popover
+        background.blendingMode = .behindWindow
+        background.state = .active
+        background.wantsLayer = true
+        background.layer?.cornerRadius = 14
+        background.layer?.masksToBounds = true
+        view = background
 
         let title = NSTextField(labelWithString: L10n.monitorTitle)
         title.font = .systemFont(ofSize: 16, weight: .semibold)
+        title.textColor = .labelColor
         title.translatesAutoresizingMaskIntoConstraints = false
-        summaryLabel.font = .monospacedDigitSystemFont(ofSize: 12, weight: .regular)
-        summaryLabel.textColor = .secondaryLabelColor
+        summaryLabel.font = .monospacedDigitSystemFont(ofSize: 12, weight: .medium)
+        summaryLabel.textColor = .labelColor
         summaryLabel.maximumNumberOfLines = 2
         summaryLabel.lineBreakMode = .byWordWrapping
         summaryLabel.translatesAutoresizingMaskIntoConstraints = false
 
         let quitButton = NSButton(title: L10n.quit, target: NSApplication.shared, action: #selector(NSApplication.terminate(_:)))
-        quitButton.bezelStyle = .inline
+        quitButton.bezelStyle = .rounded
         quitButton.controlSize = .small
         quitButton.translatesAutoresizingMaskIntoConstraints = false
 
@@ -125,11 +133,11 @@ final class ProcessListViewController: NSViewController, NSTableViewDataSource, 
         let summary = NSMutableAttributedString(
             string: "\(firstLine)\n\(secondLine)",
             attributes: [
-                .font: NSFont.monospacedDigitSystemFont(ofSize: 12, weight: .regular),
-                .foregroundColor: NSColor.secondaryLabelColor
+                .font: NSFont.monospacedDigitSystemFont(ofSize: 12, weight: .medium),
+                .foregroundColor: NSColor.labelColor
             ]
         )
-        let pressureMarkerRange = (summary.string as NSString).range(of: "● \(L10n.pressureName(load.memoryPressure))")
+        let pressureMarkerRange = (summary.string as NSString).range(of: "●")
         summary.addAttribute(.foregroundColor, value: pressureColor(load.memoryPressure), range: pressureMarkerRange)
         summaryLabel.attributedStringValue = summary
     }

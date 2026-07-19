@@ -5,17 +5,13 @@ final class StatusController: NSObject, NSWindowDelegate {
     private let statusItem = NSStatusBar.system.statusItem(withLength: 128)
     private let graphView = StatusGraphView(frame: NSRect(x: 1, y: 0, width: 126, height: 22))
     private let processController: ProcessListViewController
-    private let processWindow: NSWindow
+    private let processWindow: BubblePanel
     private var timer: Timer?
+    private var outsideClickMonitor: Any?
 
     override init() {
         processController = ProcessListViewController(monitor: monitor)
-        processWindow = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 620, height: 520),
-            styleMask: [.titled, .closable, .miniaturizable, .resizable],
-            backing: .buffered,
-            defer: false
-        )
+        processWindow = BubblePanel(contentRect: NSRect(x: 0, y: 0, width: 620, height: 520))
         super.init()
 
         if let button = statusItem.button {
@@ -28,12 +24,10 @@ final class StatusController: NSObject, NSWindowDelegate {
             button.sendAction(on: [.leftMouseUp, .rightMouseUp])
         }
 
-        processWindow.title = L10n.windowTitle
         processWindow.contentViewController = processController
         processWindow.minSize = NSSize(width: 480, height: 320)
         processWindow.isReleasedWhenClosed = false
         processWindow.delegate = self
-        processWindow.collectionBehavior = [.fullScreenPrimary]
 
         updateSystemLoad()
         timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
@@ -44,19 +38,37 @@ final class StatusController: NSObject, NSWindowDelegate {
 
     func stop() {
         timer?.invalidate()
-        processController.stopUpdating()
+        hidePanel()
     }
 
     @objc private func toggleWindow() {
         guard let button = statusItem.button else { return }
         if processWindow.isVisible {
-            processWindow.orderOut(nil)
-            processController.stopUpdating()
+            hidePanel()
         } else {
             positionWindow(below: button)
             processController.startUpdating()
-            NSApp.activate(ignoringOtherApps: true)
-            processWindow.makeKeyAndOrderFront(nil)
+            processWindow.orderFrontRegardless()
+            processWindow.makeKey()
+            startWatchingForOutsideClicks()
+        }
+    }
+
+    private func hidePanel() {
+        processWindow.orderOut(nil)
+        processController.stopUpdating()
+        if let outsideClickMonitor {
+            NSEvent.removeMonitor(outsideClickMonitor)
+            self.outsideClickMonitor = nil
+        }
+    }
+
+    private func startWatchingForOutsideClicks() {
+        guard outsideClickMonitor == nil else { return }
+        outsideClickMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] _ in
+            DispatchQueue.main.async {
+                self?.hidePanel()
+            }
         }
     }
 
@@ -88,6 +100,6 @@ final class StatusController: NSObject, NSWindowDelegate {
     }
 
     func windowWillClose(_ notification: Notification) {
-        processController.stopUpdating()
+        hidePanel()
     }
 }
