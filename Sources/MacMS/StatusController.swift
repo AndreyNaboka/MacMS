@@ -8,6 +8,7 @@ final class StatusController: NSObject, NSWindowDelegate {
     private let processWindow: BubblePanel
     private var timer: Timer?
     private var outsideClickMonitor: Any?
+    private var occlusionObserver: NSObjectProtocol?
 
     override init() {
         processController = ProcessListViewController(monitor: monitor)
@@ -28,6 +29,16 @@ final class StatusController: NSObject, NSWindowDelegate {
         processWindow.minSize = NSSize(width: 480, height: 320)
         processWindow.isReleasedWhenClosed = false
         processWindow.delegate = self
+        occlusionObserver = NotificationCenter.default.addObserver(
+            forName: NSWindow.didChangeOcclusionStateNotification,
+            object: processWindow,
+            queue: .main
+        ) { [weak self] _ in
+            guard let self,
+                  self.processWindow.isVisible,
+                  !self.processWindow.occlusionState.contains(.visible) else { return }
+            self.hidePanel()
+        }
 
         updateSystemLoad()
         timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
@@ -39,6 +50,10 @@ final class StatusController: NSObject, NSWindowDelegate {
     func stop() {
         timer?.invalidate()
         hidePanel()
+        if let occlusionObserver {
+            NotificationCenter.default.removeObserver(occlusionObserver)
+            self.occlusionObserver = nil
+        }
     }
 
     @objc private func toggleWindow() {
