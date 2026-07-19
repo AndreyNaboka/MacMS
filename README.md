@@ -1,6 +1,6 @@
 # MacMS. A native CPU and memory monitor for the macOS menu bar.
 
-<img width="618" height="580" alt="image" src="https://github.com/user-attachments/assets/65280cc1-626f-4f06-9869-e072b447f256" />
+<img width="620" height="554" alt="image" src="https://github.com/user-attachments/assets/f4309319-cc92-4dab-ace8-cdb12f023c83" />
 
 
 ### Features
