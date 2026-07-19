@@ -67,9 +67,16 @@ final class StatusController: NSObject, NSWindowDelegate {
         guard outsideClickMonitor == nil else { return }
         outsideClickMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] _ in
             DispatchQueue.main.async {
-                self?.hidePanel()
+                guard let self, !self.isMouseOverStatusItem() else { return }
+                self.hidePanel()
             }
         }
+    }
+
+    private func isMouseOverStatusItem() -> Bool {
+        guard let button = statusItem.button, let statusWindow = button.window else { return false }
+        let buttonRect = statusWindow.convertToScreen(button.convert(button.bounds, to: nil))
+        return buttonRect.contains(NSEvent.mouseLocation)
     }
 
     private func positionWindow(below button: NSStatusBarButton) {
